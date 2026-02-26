@@ -124,7 +124,13 @@ const Navbar = () => {
             navigate(basePath);
             setTimeout(() => {
                 const el = document.getElementById(sectionId);
-                if (el) el.scrollIntoView({ behavior: "smooth" });
+                const navEl = document.querySelector("nav.fixed-top");
+                const navH = navEl ? navEl.getBoundingClientRect().height : 0;
+                if (el) {
+                    const rect = el.getBoundingClientRect();
+                    const y = Math.max(0, rect.top + window.pageYOffset - navH);
+                    window.scrollTo({ top: y, behavior: "smooth" });
+                }
             }, 60);
         }
         setMenuOpen(false);
