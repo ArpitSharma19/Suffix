@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Hero from "../components/Hero";
 import About from "../components/About";
 import Products from "../components/Products";
@@ -14,6 +14,7 @@ import AboutStarted from "../components/about/AboutStarted";
 
 const DynamicPage = () => {
     const { slug, section } = useParams();
+    const navigate = useNavigate();
     const [page, setPage] = useState(null);
     const [aboutContent, setAboutContent] = useState(null);
 
@@ -51,14 +52,25 @@ const DynamicPage = () => {
         const lower = section.toString().toLowerCase();
         const nav = document.querySelector("nav.fixed-top");
         const navH = nav ? nav.getBoundingClientRect().height : 0;
-        const all = Array.from(document.querySelectorAll("[id]"));
-        const target = all.find(el => (el.id || "").toLowerCase() === lower);
-        if (target) {
-            const rect = target.getBoundingClientRect();
-            const y = Math.max(0, rect.top + window.pageYOffset - navH);
-            window.scrollTo({ top: y, behavior: "smooth" });
-        }
-    }, [section, normalized]);
+        let attempts = 0;
+        const maxAttempts = 60; // dynamic pages may render later after data load
+        const tick = () => {
+            attempts += 1;
+            const all = Array.from(document.querySelectorAll("[id]"));
+            const target = all.find(el => (el.id || "").toLowerCase() === lower);
+            if (target) {
+                target.scrollIntoView({ behavior: "smooth", block: "start" });
+                if (navH > 0) setTimeout(() => window.scrollBy(0, -navH), 0);
+                return;
+            }
+            if (attempts < maxAttempts) {
+                requestAnimationFrame(tick);
+            } else {
+                navigate(`/${slug}`, { replace: true });
+            }
+        };
+        requestAnimationFrame(tick);
+    }, [section, normalized, slug, navigate]);
 
     return (
         <>

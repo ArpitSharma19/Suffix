@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getContentByKey, updateContent } from '../../services/api';
+import { listPages } from '../../utils/pageRegistry';
 
 const defaultPages = [
   { id: 'home', name: 'Home', slug: 'home' },
@@ -150,6 +151,19 @@ const PagesManager = () => {
     }
   };
 
+  const [suggestedSlugs, setSuggestedSlugs] = useState([]);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const existing = await listPages();
+        setSuggestedSlugs(existing.map(p => p.slug));
+      } catch {
+        setSuggestedSlugs([]);
+      }
+    };
+    load();
+  }, []);
+
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -178,7 +192,11 @@ const PagesManager = () => {
             placeholder="Custom slug (optional)"
             value={newPage.slug}
             onChange={(e) => setNewPage({ ...newPage, slug: e.target.value })}
+            list="slug-suggestions"
           />
+          <datalist id="slug-suggestions">
+            {suggestedSlugs.map(s => (<option key={s} value={s} />))}
+          </datalist>
           <button className="btn btn-primary" onClick={handleAddPage}>Add</button>
         </div>
 

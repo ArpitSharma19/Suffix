@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getContentByKey, updateContent } from '../../services/api';
+import { listPages, listSectionsForPage } from '../../utils/pageRegistry';
 
 const FooterEditor = () => {
     const [content, setContent] = useState({ products: [], solutions: [], company: [] });
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [linkSuggestionsMap, setLinkSuggestionsMap] = useState({});
 
     const fetchContent = async () => {
         try {
@@ -22,6 +24,41 @@ const FooterEditor = () => {
             fetchContent();
         }, 0);
     }, []);
+
+    useEffect(() => {
+        const build = async () => {
+            try {
+                const pages = await listPages();
+                const pagesList = pages.map(p => `/${p.slug}`);
+                const map = {};
+                const allItems = [];
+                ['products', 'solutions', 'company'].forEach(section => {
+                    (content[section] || []).forEach((item, idx) => {
+                        allItems.push({ section, idx, link: (item.link || '').trim() });
+                    });
+                });
+                for (const it of allItems) {
+                    const key = `${it.section}-${it.idx}`;
+                    const link = it.link;
+                    if (!link || link === '/' || !link.startsWith('/')) {
+                        map[key] = pagesList;
+                    } else {
+                        const slug = link.replace(/^\//, '').split('/')[0];
+                        try {
+                            const secs = await listSectionsForPage(slug);
+                            map[key] = secs.map(s => `/${slug}/${s}`);
+                        } catch {
+                            map[key] = [];
+                        }
+                    }
+                }
+                setLinkSuggestionsMap(map);
+            } catch {
+                setLinkSuggestionsMap({});
+            }
+        };
+        build();
+    }, [content]);
 
     const handleSave = async () => {
         try {
@@ -95,7 +132,13 @@ const FooterEditor = () => {
                                                     placeholder="Link"
                                                     value={item.link}
                                                     onChange={(e) => updateItem(section.key, index, 'link', e.target.value)}
+                                                    list={`footer-link-suggest-${section.key}-${index}`}
                                                 />
+                                                <datalist id={`footer-link-suggest-${section.key}-${index}`}>
+                                                    {(linkSuggestionsMap[`${section.key}-${index}`] || []).map(s => (
+                                                        <option key={s} value={s} />
+                                                    ))}
+                                                </datalist>
                                             </div>
                                             <button 
                                                 className="btn btn-danger btn-sm w-100"

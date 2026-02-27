@@ -3,7 +3,7 @@ import React from "react";
 const AboutHero = ({ image, line1, line2 }) => {
     return (
         <section
-            className="about-hero d-flex align-items-center justify-content-center text-center text-white py-5 mt-9"
+            className="about-hero d-flex align-items-center justify-content-center text-center text-white py-5"
             style={{
                 backgroundImage: `url(${image})`,
                 backgroundSize: "cover",
@@ -22,4 +22,3 @@ const AboutHero = ({ image, line1, line2 }) => {
 };
 
 export default AboutHero;
-

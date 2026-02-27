@@ -39,22 +39,20 @@ const Navbar = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, [lastScrollY]);
 
+    const normalizeSectionId = (s) => {
+        const v = (s || '').toString().toLowerCase();
+        if (v === 'hero') return 'home';
+        if (v === 'imagegrid' || v === 'career' || v === 'careers') return 'imageGrid';
+        return s;
+    };
+
     const goHomeAndScroll = (sectionId) => {
-        navigate("/");
-        setTimeout(() => {
-            if (sectionId) {
-                const el = document.getElementById(sectionId);
-                const navEl = document.querySelector("nav.fixed-top");
-                const navH = navEl ? navEl.getBoundingClientRect().height : 0;
-                if (el) {
-                    const rect = el.getBoundingClientRect();
-                    const y = Math.max(0, rect.top + window.pageYOffset - navH);
-                    window.scrollTo({ top: y, behavior: "smooth" });
-                }
-            } else {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            }
-        }, 60);
+        const id = sectionId ? normalizeSectionId(sectionId) : null;
+        if (id) {
+            navigate(`/home/${id}`);
+        } else {
+            navigate("/home");
+        }
     };
 
     const handleMenuClick = (e, item) => {
@@ -118,20 +116,18 @@ const Navbar = () => {
 
     const handleSubmenuClick = (basePath, sectionId) => (e) => {
         e.preventDefault();
+        const target = (sectionId || '').toString().trim();
+        if (target.startsWith('/')) {
+            navigate(target);
+            setMenuOpen(false);
+            return;
+        }
         if (basePath === "/" || basePath === "" || basePath.toLowerCase() === "/home") {
-            goHomeAndScroll(sectionId === "home" ? null : sectionId);
+            goHomeAndScroll(target === "home" ? null : target);
         } else {
-            navigate(basePath);
-            setTimeout(() => {
-                const el = document.getElementById(sectionId);
-                const navEl = document.querySelector("nav.fixed-top");
-                const navH = navEl ? navEl.getBoundingClientRect().height : 0;
-                if (el) {
-                    const rect = el.getBoundingClientRect();
-                    const y = Math.max(0, rect.top + window.pageYOffset - navH);
-                    window.scrollTo({ top: y, behavior: "smooth" });
-                }
-            }, 60);
+            const norm = normalizeSectionId(target);
+            const path = `${basePath.replace(/\/$/, '')}/${norm}`;
+            navigate(path);
         }
         setMenuOpen(false);
     };
@@ -206,7 +202,7 @@ const Navbar = () => {
                                 <li>
                                     <a
                                         className="text-dark text-decoration-none fs-20"
-                                        href="/"
+                                        href="/home"
                                         onClick={(e) => { e.preventDefault(); goHomeAndScroll(null); }}
                                     >
                                         Home
@@ -221,10 +217,10 @@ const Navbar = () => {
                                         About
                                     </a>
                                 </li>
-                                <li><a className="text-dark text-decoration-none fs-20" href="/#products" onClick={(e)=>{ e.preventDefault(); goHomeAndScroll('products'); }}>Products</a></li>
-                                <li><a className="text-dark text-decoration-none fs-20" href="/#solutions" onClick={(e)=>{ e.preventDefault(); goHomeAndScroll('solutions'); }}>Solutions</a></li>
+                                <li><a className="text-dark text-decoration-none fs-20" href="/home#products" onClick={(e)=>{ e.preventDefault(); goHomeAndScroll('products'); }}>Products</a></li>
+                                <li><a className="text-dark text-decoration-none fs-20" href="/home#solutions" onClick={(e)=>{ e.preventDefault(); goHomeAndScroll('solutions'); }}>Solutions</a></li>
                                 <li><a className="text-dark text-decoration-none fs-20" href="/home/imagegrid" onClick={(e)=>{ e.preventDefault(); navigate('/home/imagegrid'); }}>Careers</a></li>
-                                <li><a className="text-dark text-decoration-none fs-20" href="/#contact" onClick={(e)=>{ e.preventDefault(); goHomeAndScroll('contact'); }}>Contact</a></li>
+                                <li><a className="text-dark text-decoration-none fs-20" href="/home#contact" onClick={(e)=>{ e.preventDefault(); goHomeAndScroll('contact'); }}>Contact</a></li>
                                 <li><a className="text-primary text-decoration-none fs-20 fw-semibold" href="/home/imagegrid" onClick={(e)=>{ e.preventDefault(); navigate('/home/imagegrid'); }}>Sales Enquire</a></li>
                             </>
                         )}

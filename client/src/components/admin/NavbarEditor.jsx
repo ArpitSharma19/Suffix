@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { getContentByKey, updateContent } from '../../services/api';
 import ImageUploader from './ImageUploader';
+import { listPages, listSectionsForPage } from '../../utils/pageRegistry';
 
 const NavbarEditor = () => {
     const [content, setContent] = useState({ logo: '', logoId: '', menuItems: [] });
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [sectionOptions, setSectionOptions] = useState({});
+    const [linkSuggestionsMap, setLinkSuggestionsMap] = useState({});
 
     const fetchContent = async () => {
         try {
@@ -56,6 +58,34 @@ const NavbarEditor = () => {
             setSectionOptions(acc);
         };
         load();
+    }, [content.menuItems]);
+
+    useEffect(() => {
+        const build = async () => {
+            try {
+                const pages = await listPages();
+                const pagesList = pages.map(p => `/${p.slug}`);
+                const map = {};
+                for (let i = 0; i < (content.menuItems || []).length; i += 1) {
+                    const link = (content.menuItems[i]?.link || '').trim();
+                    if (!link || link === '/' || !link.startsWith('/')) {
+                        map[i] = pagesList;
+                    } else {
+                        const slug = link.replace(/^\//, '').split('/')[0];
+                        try {
+                            const secs = await listSectionsForPage(slug);
+                            map[i] = secs.map(s => `/${slug}/${s}`);
+                        } catch {
+                            map[i] = [];
+                        }
+                    }
+                }
+                setLinkSuggestionsMap(map);
+            } catch {
+                setLinkSuggestionsMap({});
+            }
+        };
+        build();
     }, [content.menuItems]);
 
     const handleSave = async () => {
@@ -164,10 +194,14 @@ const NavbarEditor = () => {
                                     <input
                                         type="text"
                                         className="form-control"
-                                        placeholder="Base Link (e.g. /, /about, /products)"
+                                        placeholder="Base Link (e.g. /home or /home/hero)"
                                         value={item.link}
                                         onChange={(e) => updateMenuItem(index, 'link', e.target.value)}
+                                        list={`page-section-suggestions-${index}`}
                                     />
+                                    <datalist id={`page-section-suggestions-${index}`}>
+                                        {(linkSuggestionsMap[index] || []).map(s => (<option key={s} value={s} />))}
+                                    </datalist>
                                 </div>
                                 <div className="col-md-2">
                                     <div className="btn-group d-flex">

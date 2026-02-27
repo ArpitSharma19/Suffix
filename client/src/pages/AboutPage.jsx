@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { getContentByKey } from "../services/api";
 import "../App.css";
 import AboutHero from "../components/about/AboutHero";
@@ -36,6 +37,8 @@ const defaultContent = {
 
 const AboutPage = () => {
     const [content, setContent] = useState(defaultContent);
+    const params = useParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const load = async () => {
@@ -56,6 +59,41 @@ const AboutPage = () => {
         };
         load();
     }, []);
+
+    useEffect(() => {
+        const section = params.section;
+        if (!section) return;
+        const map = {
+            hero: "aboutHero",
+            overview: "aboutOverview",
+            mission: "aboutMission",
+            started: "aboutStarted",
+            abouthero: "aboutHero",
+            aboutoverview: "aboutOverview",
+            aboutmission: "aboutMission",
+            aboutstarted: "aboutStarted"
+        };
+        const targetId = map[String(section).toLowerCase()] || section;
+        const nav = document.querySelector("nav.fixed-top");
+        const navH = nav ? nav.getBoundingClientRect().height : 0;
+        let attempts = 0;
+        const maxAttempts = 40;
+        const tick = () => {
+            attempts += 1;
+            const el = document.getElementById(targetId);
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+                if (navH > 0) setTimeout(() => window.scrollBy(0, -navH), 0);
+                return;
+            }
+            if (attempts < maxAttempts) {
+                requestAnimationFrame(tick);
+            } else {
+                navigate("/about", { replace: true });
+            }
+        };
+        requestAnimationFrame(tick);
+    }, [params.section, navigate]);
 
     return (
         <>

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getContentByKey, updateContent } from '../../services/api';
 import ImageUploader from './ImageUploader';
+import { listPages } from '../../utils/pageRegistry';
 
 const PageTemplateWizard = () => {
     const [title, setTitle] = useState('');
@@ -18,12 +19,24 @@ const PageTemplateWizard = () => {
     const [addToNavbar, setAddToNavbar] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [heroOverride, setHeroOverride] = useState('');
+    const [slugSuggestions, setSlugSuggestions] = useState([]);
 
     const toggleSection = (key) => {
         setSections({ ...sections, [key]: !sections[key] });
     };
 
     // replaced by inline Create Page handler
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const pages = await listPages();
+                setSlugSuggestions(pages.map(p => p.slug));
+            } catch {
+                setSlugSuggestions([]);
+            }
+        };
+        load();
+    }, []);
 
     return (
         <div className="card">
@@ -51,7 +64,11 @@ const PageTemplateWizard = () => {
                             className="form-control"
                             value={slug}
                             onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                            list="slug-suggest-list"
                         />
+                        <datalist id="slug-suggest-list">
+                            {slugSuggestions.map(s => (<option key={s} value={s} />))}
+                        </datalist>
                     </div>
                 </div>
 

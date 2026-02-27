@@ -10,6 +10,7 @@
 /* Global navbar gap and anchor offset */
 :root {
     --nav-gap: 88px;
+    --footer-gap: 0px;
 }
 @media (max-width: 992px) {
     :root {
@@ -23,7 +24,20 @@
 }
 section[id],
 .page-section {
-    scroll-margin-top: var(--nav-gap);
+    scroll-margin-top: 0;
+}
+
+.content-spacing {
+    padding-top: var(--nav-gap);
+}
+
+.site {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.site-content {
+    flex: 1;
 }
 
 /* =====================================
@@ -643,6 +657,10 @@ canvas {
 .btn-lg {
     padding: 0.75rem 1.5rem;
     font-size: 18px;
+}
+
+.site-footer {
+    margin-top: auto;
 }
 
 /* Admin */

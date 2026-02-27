@@ -63,7 +63,7 @@ const Footer = () => {
     });
 
     return (
-        <footer id="contact" className="bg-light py-5">
+        <footer id="contact" className="site-footer bg-light py-5">
             <div className="container">
                 <div className="row text-start text-xl-start">
 
