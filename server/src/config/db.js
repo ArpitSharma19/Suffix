@@ -9,8 +9,16 @@ const sequelize = new Sequelize(
   process.env.DB_PASS,
   {
     host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT || 3306),
     dialect: process.env.DB_DIALECT || 'mysql',
     logging: false,
+    dialectOptions: (process.env.DB_SSL === 'true' || process.env.DB_SSL === 'require') ? {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+        ca: process.env.DB_CA || undefined
+      }
+    } : {}
   }
 );
 
